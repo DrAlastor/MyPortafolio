@@ -63,7 +63,7 @@ export default function Home() {
             <h1 className="text-5xl md:text-7xl font-bold">
               Hola, soy <br />
               <span className="text-gray-300 text-4xl md:text-6xl">
-                Alessandro Yevara
+                Alessandro
               </span>
             </h1>
             <h2 className="text-2xl md:text-3xl text-blue-500 font-semibold flex items-center">
