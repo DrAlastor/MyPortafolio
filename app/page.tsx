@@ -98,7 +98,9 @@ export default function Home() {
               </a>
               {/* Dejé el de LinkedIn vacío por si luego lo creas/agregas */}
               <a
-                href="#"
+                href="https://www.linkedin.com/in/alessandro-yevara-ponce-286876407/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hover:text-white transition-colors"
                 title="LinkedIn"
               >
@@ -133,8 +135,11 @@ export default function Home() {
             className="flex justify-center md:justify-end"
           >
             <div className="w-80 h-80 md:w-96 md:h-96 bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl flex items-center justify-center overflow-hidden">
-              {/* Aquí puedes poner tu foto más adelante */}
-              <span className="text-gray-600">Espacio para tu foto</span>
+              <img
+                src="/alessandro-face.png"
+                alt="Alessandro Yevara"
+                className="w-full h-full object-cover"
+              />
             </div>
           </motion.div>
         </div>
