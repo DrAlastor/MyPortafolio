@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import {
   FaGithub,
   FaLinkedin,
@@ -9,237 +9,630 @@ import {
   FaEnvelope,
   FaExternalLinkAlt,
   FaCertificate,
+  FaArrowRight,
+  FaWhatsapp,
 } from "react-icons/fa";
-import { supabase } from "../lib/supabase";
+import {
+  projects,
+  academicExperiences,
+  skills,
+  getText,
+} from "../data/portfolio";
 
+/* ─── Translations ─── */
+const translations = {
+  es: {
+    navAbout: "Sobre Mí",
+    navProjects: "Proyectos",
+    navExperience: "Formación",
+    navContact: "Contacto",
+    heroDescription:
+      "Mi objetivo es escribir código **mantenible, limpio** y **comprensible** para que el proceso de desarrollo sea agradable.",
+    heroProjectsBtn: "Proyectos",
+    heroDownloadCV: "Descargar CV",
+    projectsTag: ".../Proyectos ...",
+    projectsTitle: "Proyectos Realizados",
+    projectsViewBtn: "Ver proyecto",
+    projectsCodeBtn: "Ver código",
+    aboutTag: ".../Sobre mí ...",
+    aboutTitle: "Sobre Mí",
+    aboutText:
+      "¡Hola! Soy Alessandro, un desarrollador **full-stack**. Estudiante de Ingeniería Informática apasionado por crear soluciones reales. Especializado en tecnologías modernas y diseño de **sistemas escalables**.",
+    experienceTag: ".../Formación ...",
+    experienceTitle: "Formación y Logros",
+    certificateLabel: "Certificado",
+    contactTag: ".../Contacto ...",
+    contactTitle: "Hablemos",
+    contactText:
+      "¿Tienes un proyecto en mente o quieres colaborar? No dudes en contactarme.",
+    contactDownloadCV: "↓ Descargar CV",
+    footerRights: "Todos los derechos reservados.",
+  },
+  en: {
+    navAbout: "About Me",
+    navProjects: "Projects",
+    navExperience: "Education",
+    navContact: "Contact",
+    heroDescription:
+      "My goal is to write **maintainable, clean** and **understandable** code so that the development process is enjoyable.",
+    heroProjectsBtn: "Projects",
+    heroDownloadCV: "Download CV",
+    projectsTag: ".../Projects ...",
+    projectsTitle: "Projects",
+    projectsViewBtn: "View project",
+    projectsCodeBtn: "View code",
+    aboutTag: ".../About me ...",
+    aboutTitle: "About Me",
+    aboutText:
+      "Hi! I'm Alessandro, a **full-stack** developer. Computer Engineering student passionate about creating real solutions. Specialized in modern technologies and **scalable systems** design.",
+    experienceTag: ".../Education ...",
+    experienceTitle: "Education & Achievements",
+    certificateLabel: "Certificate",
+    contactTag: ".../Contact ...",
+    contactTitle: "Let's Talk",
+    contactText:
+      "Do you have a project in mind or want to collaborate? Don't hesitate to contact me.",
+    contactDownloadCV: "↓ Download CV",
+    footerRights: "All rights reserved.",
+  },
+};
+
+type Lang = keyof typeof translations;
+
+/* ─── Helper: render bold markdown ─── */
+function renderBold(text: string) {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+  );
+}
+
+/* ─── Animation Variants ─── */
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      delay: i * 0.1,
+      ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+    },
+  }),
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
+
+/* ─── Animated Container Wrapper ─── */
+function AnimatedSection({
+  children,
+  className = "section-container",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={staggerContainer}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ─── Main Component ─── */
 export default function Home() {
-  // Estados para la base de datos actualizada
-  const [proyectos, setProyectos] = useState<any[]>([]);
-  const [experiencias, setExperiencias] = useState<any[]>([]);
-  const [habilidades, setHabilidades] = useState<any[]>([]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [lang, setLang] = useState<Lang>("es");
+  const [activeTimeline, setActiveTimeline] = useState<number>(
+    academicExperiences.length > 0 ? academicExperiences[0].id : -1
+  );
+
+  const t = translations[lang];
 
   const miTelefono = "59176023052";
   const mensajeWhatsApp =
-    "Hola Alessandro, vengo de tu portafolio web y me gustaría hablar contigo.";
+    lang === "es"
+      ? "Hola Alessandro, vengo de tu portafolio web y me gustaría hablar contigo."
+      : "Hi Alessandro, I'm coming from your portfolio and I'd like to talk to you.";
 
-  // Carga de datos desde Supabase
-  useEffect(() => {
-    async function obtenerDatos() {
-      // 1. Proyectos destacados
-      const { data: dataProyectos } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("is_featured", true);
-      if (dataProyectos) setProyectos(dataProyectos);
+  const handleNavClick = () => setMenuOpen(false);
 
-      // 2. Experiencia académica y certificados
-      const { data: dataExperiencias } = await supabase
-        .from("academic_experiences")
-        .select("*")
-        .order("start_date", { ascending: false });
-      if (dataExperiencias) setExperiencias(dataExperiencias);
+  // Group skills by localized category
+  const skillsByCategory = skills.reduce(
+    (acc: Record<string, typeof skills>, skill) => {
+      const cat = getText(skill.category, lang);
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(skill);
+      return acc;
+    },
+    {}
+  );
 
-      // 3. Habilidades / Tech Stack
-      const { data: dataSkills } = await supabase.from("skills").select("*");
-      if (dataSkills) setHabilidades(dataSkills);
-    }
-    obtenerDatos();
-  }, []);
+  const socialLinks = [
+    {
+      icon: <FaGithub />,
+      label: "Github",
+      href: "https://github.com/DrAlastor",
+    },
+    {
+      icon: <FaLinkedin />,
+      label: "LinkedIn",
+      href: "https://www.linkedin.com/in/alessandro-yevara-ponce-286876407/",
+    },
+    {
+      icon: <FaInstagram />,
+      label: "Instagram",
+      href: "https://instagram.com/byalastor",
+    },
+    {
+      icon: <FaEnvelope />,
+      label: "Email",
+      href: "mailto:yevaraponcealessandro@gmail.com",
+    },
+  ];
+
+  const navItems = [
+    { label: t.navAbout, href: "#about" },
+    { label: t.navProjects, href: "#projects" },
+    { label: t.navExperience, href: "#experience" },
+    { label: t.navContact, href: "#contact" },
+  ];
 
   return (
-    <main className="min-h-screen bg-black text-white relative overflow-hidden pb-20">
-      {/* FONDO ORIGINAL: Gradiente radial sutil */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/40 via-black to-black -z-10 fixed"></div>
+    <main>
+      {/* ═══════════════════════════════════════════
+          NAVBAR
+          ═══════════════════════════════════════════ */}
+      <nav className="navbar">
+        <a href="#" className="navbar-logo">
+          Alessandro
+          <span>Yevara</span>
+        </a>
 
-      {/* --- SECCIÓN 1: HERO --- */}
-      <section className="min-h-screen flex items-center justify-center p-8 md:p-24">
-        <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center z-10">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="flex flex-col gap-6"
+        <ul className="navbar-links">
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))}
+        </ul>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <button
+            className="lang-toggle"
+            onClick={() => setLang(lang === "es" ? "en" : "es")}
+            title={lang === "es" ? "Switch to English" : "Cambiar a Español"}
           >
-            <h1 className="text-5xl md:text-7xl font-bold">
-              Hola, soy <br />
-              <span className="text-gray-300 text-4xl md:text-6xl">
-                Alessandro
-              </span>
+            <span className={lang === "es" ? "active-lang" : ""}>ESP</span>
+            /
+            <span className={lang === "en" ? "active-lang" : ""}>ENG</span>
+          </button>
+
+          <button
+            className={`hamburger ${menuOpen ? "active" : ""}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Abrir menú"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
+        {navItems.map((item) => (
+          <a key={item.href} href={item.href} onClick={handleNavClick}>
+            {item.label}
+          </a>
+        ))}
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          HERO SECTION
+          ═══════════════════════════════════════════ */}
+      <section className="section-wrapper">
+        {/* Full-width Screen Circles — Hero */}
+        <div
+          className="circle-decoration circle-xl double"
+          style={{ top: "-300px", right: "-250px" }}
+        />
+        <div
+          className="circle-decoration circle-lg subtle"
+          style={{ bottom: "-250px", left: "-200px" }}
+        />
+        <div
+          className="circle-decoration circle-sm"
+          style={{ top: "25%", left: "55%" }}
+        />
+
+        <div className="hero">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <h1 className="hero-title">
+              Full-stack
+              <br />
+              <span style={{ paddingLeft: "10%" }}>Developer</span>
             </h1>
-            <h2 className="text-2xl md:text-3xl text-blue-500 font-semibold flex items-center">
-              Desarrollador de Software
-              <motion.span
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ repeat: Infinity, duration: 0.8 }}
-                className="ml-1"
+          </motion.div>
+
+          <motion.p
+            className="hero-description"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            {renderBold(t.heroDescription)}
+          </motion.p>
+
+          <motion.div
+            className="hero-actions"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+          >
+            <a href="#projects" className="btn-primary">
+              {t.heroProjectsBtn} <FaArrowRight />
+            </a>
+            <a
+              href="/CV_Alessandro_Yevara.pdf"
+              download
+              className="btn-circle"
+              title={t.heroDownloadCV}
+            >
+              ↓
+            </a>
+          </motion.div>
+
+          <motion.div
+            className="social-pills"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            {socialLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target={link.href.startsWith("mailto") ? undefined : "_blank"}
+                rel="noopener noreferrer"
+                className="social-pill"
               >
-                |
-              </motion.span>
-            </h2>
-            <p className="text-gray-400 text-lg max-w-lg leading-relaxed">
-              Estudiante de Ingeniería Informática apasionado por crear
-              soluciones reales. Especializado en tecnologías modernas y diseño
-              de sistemas escalables.
+                {link.icon}
+                {link.label}
+              </a>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          PROJECTS SECTION
+          ═══════════════════════════════════════════ */}
+      <section className="section-wrapper" id="projects">
+        {/* Full-width Screen Circles — Projects */}
+        <div
+          className="circle-decoration circle-lg double"
+          style={{ top: "-150px", right: "-200px" }}
+        />
+        <div
+          className="circle-decoration circle-md subtle"
+          style={{ bottom: "-100px", left: "-150px" }}
+        />
+
+        <AnimatedSection className="section-container">
+          <motion.p className="section-tag" variants={fadeUp} custom={0}>
+            {t.projectsTag}
+          </motion.p>
+          <motion.h2 className="section-title" variants={fadeUp} custom={1}>
+            {t.projectsTitle}
+          </motion.h2>
+
+          <div className="projects-grid">
+            {projects.map((p, i) => (
+              <motion.div
+                key={p.id}
+                className="project-card"
+                variants={fadeUp}
+                custom={i + 2}
+              >
+                {p.image_url ? (
+                  <img
+                    src={p.image_url}
+                    alt={getText(p.title, lang)}
+                    className="project-card-image"
+                    style={{ objectFit: "cover" }}
+                  />
+                ) : (
+                  <div
+                    className="project-card-image"
+                    style={{
+                      background: `linear-gradient(135deg, 
+                        hsl(${(i * 60 + 240) % 360}, 40%, 25%), 
+                        hsl(${(i * 60 + 280) % 360}, 50%, 20%))`,
+                    }}
+                  />
+                )}
+                <div className="project-card-body">
+                  <h3 className="project-card-title">{getText(p.title, lang)}</h3>
+                  <p className="project-card-desc">
+                    {getText(p.short_description, lang)}
+                  </p>
+
+                  {p.tech_stack && p.tech_stack.length > 0 && (
+                    <div className="skill-tags" style={{ marginBottom: "16px" }}>
+                      {p.tech_stack.map((tech: string) => (
+                        <span key={tech} className="skill-tag">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="project-card-actions">
+                    {p.project_url && (
+                      <a
+                        href={p.project_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-read-more"
+                      >
+                        {t.projectsViewBtn} <FaExternalLinkAlt size={10} />
+                      </a>
+                    )}
+                    {p.github_url && (
+                      <a
+                        href={p.github_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-circle"
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          fontSize: "0.85rem",
+                        }}
+                        title={t.projectsCodeBtn}
+                      >
+                        <FaGithub />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          ABOUT SECTION
+          ═══════════════════════════════════════════ */}
+      <section className="section-wrapper" id="about">
+        {/* Full-width Screen Circles — About */}
+        <div
+          className="circle-decoration circle-xl subtle"
+          style={{ top: "-200px", left: "-300px" }}
+        />
+        <div
+          className="circle-decoration circle-md double"
+          style={{ bottom: "-120px", right: "-120px" }}
+        />
+
+        <AnimatedSection className="section-container">
+          <motion.p className="section-tag" variants={fadeUp} custom={0}>
+            {t.aboutTag}
+          </motion.p>
+          <motion.h2 className="section-title" variants={fadeUp} custom={1}>
+            {t.aboutTitle}
+          </motion.h2>
+
+          <div className="about-content">
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <motion.p className="about-text" variants={fadeUp} custom={2}>
+                {renderBold(t.aboutText)}
+              </motion.p>
+
+              <motion.div
+                className="skills-container"
+                variants={staggerContainer}
+              >
+                {Object.entries(skillsByCategory).map(
+                  ([category, catSkills], i) => (
+                    <motion.div
+                      key={category}
+                      className="skill-group"
+                      variants={fadeUp}
+                      custom={i + 3}
+                    >
+                      <h4 className="skill-group-title">{category}</h4>
+                      <div className="skill-tags">
+                        {catSkills.map((skill) => (
+                          <span key={skill.id} className="skill-tag">
+                            {skill.name}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )
+                )}
+              </motion.div>
+            </div>
+
+            <motion.div variants={fadeUp} custom={3}>
+              <img
+                src="/alessandro-face.png"
+                alt="Alessandro Yevara"
+                className="about-photo"
+              />
+            </motion.div>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          EXPERIENCE / TIMELINE SECTION
+          ═══════════════════════════════════════════ */}
+      <section className="section-wrapper" id="experience">
+        {/* Full-width Screen Circles — Experience */}
+        <div
+          className="circle-decoration circle-lg"
+          style={{ top: "-150px", right: "-200px" }}
+        />
+        <div
+          className="circle-decoration circle-xl double"
+          style={{ bottom: "-350px", left: "-350px" }}
+        />
+
+        <AnimatedSection className="section-container">
+          <motion.p className="section-tag" variants={fadeUp} custom={0}>
+            {t.experienceTag}
+          </motion.p>
+          <motion.h2 className="section-title" variants={fadeUp} custom={1}>
+            {t.experienceTitle}
+          </motion.h2>
+
+          <motion.div className="timeline" variants={staggerContainer}>
+            {academicExperiences.map((exp, i) => (
+              <motion.div
+                key={exp.id}
+                className={`timeline-item ${activeTimeline === exp.id ? "active" : ""}`}
+                variants={fadeUp}
+                custom={i + 2}
+                onClick={() => setActiveTimeline(exp.id)}
+              >
+                <div className="timeline-date">
+                  {new Date(exp.start_date).getFullYear()}
+                  {exp.end_date && ` - ${new Date(exp.end_date).getFullYear()}`}
+                </div>
+                <div className="timeline-company">{getText(exp.institution, lang)}</div>
+                <div className="timeline-role">
+                  {getText(exp.title, lang)}
+                  {exp.has_certificate && (
+                    <span
+                      style={{
+                        marginLeft: "8px",
+                        color: "#4ade80",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      <FaCertificate
+                        style={{ display: "inline", marginRight: "4px" }}
+                      />
+                      {t.certificateLabel}
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatedSection>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          CONTACT SECTION
+          ═══════════════════════════════════════════ */}
+      <section className="section-wrapper" id="contact">
+        {/* Full-width Screen Circles — Contact */}
+        <div
+          className="circle-decoration circle-lg double"
+          style={{ top: "-100px", left: "-180px" }}
+        />
+        <div
+          className="circle-decoration circle-md"
+          style={{ bottom: "-150px", right: "-120px" }}
+        />
+
+        <AnimatedSection className="section-container">
+          <motion.p className="section-tag" variants={fadeUp} custom={0}>
+            {t.contactTag}
+          </motion.p>
+          <motion.h2 className="section-title" variants={fadeUp} custom={1}>
+            {t.contactTitle}
+          </motion.h2>
+
+          <motion.div className="contact-content" variants={fadeUp} custom={2}>
+            <p
+              className="about-text"
+              style={{ textAlign: "center", maxWidth: "500px" }}
+            >
+              {t.contactText}
             </p>
 
-            <div className="flex items-center gap-4 mt-4">
-              <a
-                href="/CV_Alessandro_Yevara.pdf"
-                download
-                className="bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors"
-              >
-                Descargar CV
-              </a>
+            <div className="contact-links">
               <a
                 href={`https://wa.me/${miTelefono}?text=${encodeURIComponent(mensajeWhatsApp)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border border-white/20 text-white px-6 py-3 rounded-full font-medium hover:bg-white/10 transition-colors"
+                className="btn-primary"
               >
-                Contáctame
-              </a>
-            </div>
-
-            <div className="flex flex-wrap gap-6 mt-6 text-gray-400 text-2xl items-center">
-              <a
-                href="https://github.com/DrAlastor"
-                target="_blank"
-                className="hover:text-white transition-colors"
-              >
-                <FaGithub />
-              </a>
-              <a
-                href="https://www.linkedin.com/in/alessandro-yevara-ponce-286876407/"
-                target="_blank"
-                className="hover:text-white transition-colors"
-              >
-                <FaLinkedin />
-              </a>
-              <a
-                href="https://instagram.com/byalastor"
-                target="_blank"
-                className="hover:text-white transition-colors"
-              >
-                <FaInstagram />
+                <FaWhatsapp /> WhatsApp
               </a>
               <a
                 href="mailto:yevaraponcealessandro@gmail.com"
-                className="hover:text-white transition-colors flex items-center gap-2"
+                className="btn-primary"
+                style={{
+                  background: "transparent",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-subtle)",
+                }}
               >
-                <FaEnvelope />{" "}
-                <span className="text-sm font-medium hidden md:block">
-                  yevaraponcealessandro@gmail.com
-                </span>
+                <FaEnvelope /> Email
+              </a>
+              <a
+                href="/CV_Alessandro_Yevara.pdf"
+                download
+                className="btn-primary"
+                style={{
+                  background: "transparent",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                {t.contactDownloadCV}
               </a>
             </div>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex justify-center md:justify-end"
-          >
-            <div className="w-80 h-80 md:w-96 md:h-96 bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-              <img
-                src="/alessandro-face.png"
-                alt="Alessandro"
-                className="w-full h-full object-cover"
-              />
+            <div className="social-pills" style={{ marginTop: "16px" }}>
+              {socialLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target={link.href.startsWith("mailto") ? undefined : "_blank"}
+                  rel="noopener noreferrer"
+                  className="social-pill"
+                >
+                  {link.icon}
+                  {link.label}
+                </a>
+              ))}
             </div>
           </motion.div>
-        </div>
+        </AnimatedSection>
       </section>
 
-      {/* --- SECCIÓN 2: PROYECTOS --- */}
-      <section className="py-20 px-8 md:px-24">
-        <div className="max-w-6xl mx-auto">
-          <h3 className="text-4xl font-bold mb-12">Proyectos Destacados</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {proyectos.map((p) => (
-              <div
-                key={p.id}
-                className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 hover:border-blue-500/50 transition-all"
-              >
-                <h4 className="text-2xl font-semibold mb-2">{p.title}</h4>
-                <p className="text-gray-400 mb-6">{p.short_description}</p>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {p.tech_stack?.map((tech: string) => (
-                    <span
-                      key={tech}
-                      className="bg-blue-500/10 text-blue-400 text-xs px-3 py-1 rounded-full border border-blue-500/20"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-                {p.project_url && (
-                  <a
-                    href={p.project_url}
-                    target="_blank"
-                    className="text-white flex items-center gap-2 text-sm hover:underline"
-                  >
-                    Ver proyecto <FaExternalLinkAlt />
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* --- SECCIÓN 3: EXPERIENCIA Y CERTIFICADOS (DB ACTUALIZADA) --- */}
-      <section className="py-20 px-8 md:px-24 bg-zinc-900/20">
-        <div className="max-w-6xl mx-auto">
-          <h3 className="text-4xl font-bold mb-12">Formación y Logros</h3>
-          <div className="space-y-6">
-            {experiencias.map((exp) => (
-              <div
-                key={exp.id}
-                className="flex flex-col md:flex-row md:items-center justify-between p-6 border-l-2 border-zinc-800 bg-zinc-900/30 rounded-r-xl"
-              >
-                <div>
-                  <h4 className="text-xl font-bold">{exp.title}</h4>
-                  <p className="text-blue-500">{exp.institution}</p>
-                  <p className="text-gray-500 text-sm mt-1">
-                    {exp.description}
-                  </p>
-                </div>
-                <div className="mt-4 md:mt-0 flex items-center gap-4">
-                  {exp.has_certificate && (
-                    <span className="flex items-center gap-1 text-green-400 text-xs bg-green-400/10 px-2 py-1 rounded">
-                      <FaCertificate /> Certificado
-                    </span>
-                  )}
-                  <span className="text-zinc-500 text-sm italic">
-                    {new Date(exp.start_date).getFullYear()}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* --- SECCIÓN 4: HABILIDADES (DB ACTUALIZADA) --- */}
-      <section className="py-20 px-8 md:px-24">
-        <div className="max-w-6xl mx-auto text-center">
-          <h3 className="text-4xl font-bold mb-12">Habilidades Técnicas</h3>
-          <div className="flex flex-wrap justify-center gap-4">
-            {habilidades.map((skill) => (
-              <div
-                key={skill.id}
-                className="bg-zinc-800/50 border border-white/5 px-6 py-3 rounded-xl hover:bg-zinc-700/50 transition-colors"
-              >
-                <span className="font-medium">{skill.name}</span>
-                <span className="text-xs text-zinc-500 block">
-                  {skill.category}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ═══════════════════════════════════════════
+          FOOTER
+          ═══════════════════════════════════════════ */}
+      <footer className="footer">
+        <p>
+          © {new Date().getFullYear()} Alessandro Yevara. {t.footerRights}
+        </p>
+      </footer>
     </main>
   );
 }
