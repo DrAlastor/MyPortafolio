@@ -106,6 +106,52 @@ const staggerContainer = {
   visible: { transition: { staggerChildren: 0.08 } },
 };
 
+/* ─── Project Image Preview Component ─── */
+function ProjectCardImage({
+  imageUrl,
+  projectUrl,
+  title,
+  index,
+}: {
+  imageUrl: string | null;
+  projectUrl: string | null;
+  title: string;
+  index: number;
+}) {
+  const [hasError, setHasError] = useState(false);
+
+  // Si tiene imagen manual la usa. Si no, genera automáticamente una captura de la web.
+  let src = imageUrl;
+  if (!src && projectUrl) {
+    src = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(projectUrl)}?w=800&h=500`;
+  }
+
+  if (!src || hasError) {
+    return (
+      <div
+        className="project-card-image"
+        style={{
+          background: `linear-gradient(135deg, 
+            hsl(${(index * 60 + 240) % 360}, 40%, 25%), 
+            hsl(${(index * 60 + 280) % 360}, 50%, 20%))`,
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="project-card-image-wrapper">
+      <img
+        src={src}
+        alt={title}
+        className="project-card-image"
+        onError={() => setHasError(true)}
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
 /* ─── Animated Container Wrapper ─── */
 function AnimatedSection({
   children,
@@ -143,8 +189,8 @@ export default function Home() {
   const miTelefono = "59176023052";
   const mensajeWhatsApp =
     lang === "es"
-      ? "Hola Alessandro, vengo de tu portafolio web y me gustaría hablar contigo."
-      : "Hi Alessandro, I'm coming from your portfolio and I'd like to talk to you.";
+      ? "Hola Alessandro, vengo de tu portafolio web y me gustaría hablar contigo!."
+      : "Hi Alessandro, I'm coming from your portfolio and I'd like to talk to you!.";
 
   const handleNavClick = () => setMenuOpen(false);
 
@@ -197,7 +243,7 @@ export default function Home() {
       <nav className="navbar">
         <a href="#" className="navbar-logo">
           Alessandro
-          <span>Yevara</span>
+          <span>Yevara Ponce</span>
         </a>
 
         <ul className="navbar-links">
@@ -351,23 +397,12 @@ export default function Home() {
                 variants={fadeUp}
                 custom={i + 2}
               >
-                {p.image_url ? (
-                  <img
-                    src={p.image_url}
-                    alt={getText(p.title, lang)}
-                    className="project-card-image"
-                    style={{ objectFit: "cover" }}
-                  />
-                ) : (
-                  <div
-                    className="project-card-image"
-                    style={{
-                      background: `linear-gradient(135deg, 
-                        hsl(${(i * 60 + 240) % 360}, 40%, 25%), 
-                        hsl(${(i * 60 + 280) % 360}, 50%, 20%))`,
-                    }}
-                  />
-                )}
+                <ProjectCardImage
+                  imageUrl={p.image_url}
+                  projectUrl={p.project_url}
+                  title={getText(p.title, lang)}
+                  index={i}
+                />
                 <div className="project-card-body">
                   <h3 className="project-card-title">{getText(p.title, lang)}</h3>
                   <p className="project-card-desc">
@@ -476,7 +511,7 @@ export default function Home() {
             <motion.div variants={fadeUp} custom={3}>
               <img
                 src="/alessandro-face.png"
-                alt="Alessandro Yevara"
+                alt="Alessandro Yevara Ponce"
                 className="about-photo"
               />
             </motion.div>
@@ -630,7 +665,7 @@ export default function Home() {
           ═══════════════════════════════════════════ */}
       <footer className="footer">
         <p>
-          © {new Date().getFullYear()} Alessandro Yevara. {t.footerRights}
+          © {new Date().getFullYear()} Alessandro Yevara Ponce. {t.footerRights}
         </p>
       </footer>
     </main>

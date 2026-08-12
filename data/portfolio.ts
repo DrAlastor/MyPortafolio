@@ -52,8 +52,23 @@ export const projects: Project[] = [
   {
     id: 1,
     title: {
-      es: "Modelado de Sismos en 2D",
-      en: "2D Earthquake Modeling",
+      es: "Beta Super Mario Bros",
+      en: "Super Mario Bros Beta",
+    },
+    short_description: {
+      es: "Mini Juego creado y diseñado en Tiled y programado en C# con Visual Studio.",
+      en: "Mini game created and designed in Tiled and programmed in C# using Visual Studio.",
+    },
+    tech_stack: ["C#", ".NET", "Tiled"],
+    project_url: null,
+    github_url: "https://github.com/DrAlastor",
+    image_url: null,
+  },
+  {
+    id: 2,
+    title: {
+      es: "Modelado Matemático para la Seguridad Estructural Frente a los Sismos Utilizando Ecuaciones Diferenciales.",
+      en: "Mathematical Modeling for Earthquake Structural Safety Using Differential Equations",
     },
     short_description: {
       es: "Simulación visual de ondas sísmicas en un plano 2D con parámetros configurables y representación gráfica en tiempo real.",
@@ -65,30 +80,65 @@ export const projects: Project[] = [
     image_url: null,
   },
   {
-    id: 2,
+    id: 3,
     title: {
-      es: "Mi Portafolio Web",
-      en: "My Web Portfolio",
+      es: "Sistema de Gestión para la Cafetería Grano Urbano",
+      en: "Management System for Grano Urbano Coffee Shop",
     },
     short_description: {
-      es: "Sitio web personal construido con Next.js, diseño dark profesional con animaciones fluidas y soporte bilingüe.",
-      en: "Personal website built with Next.js, professional dark design with smooth animations and bilingual support.",
+      es: "Sistema de gestión integral para el control de ventas, inventarios y pedidos de la cafetería.",
+      en: "Comprehensive management system for inventory control, sales, and order processing for the coffee shop.",
     },
-    tech_stack: ["Next.js", "TypeScript", "Framer Motion", "CSS"],
+    tech_stack: ["Java", "NetBeans", "Listas"],
     project_url: null,
     github_url: "https://github.com/DrAlastor",
     image_url: null,
   },
-  // ── Agrega más proyectos aquí ──
-  // {
-  //   id: 3,
-  //   title: { es: "Nombre proyecto", en: "Project name" },
-  //   short_description: { es: "Descripción en español.", en: "Description in English." },
-  //   tech_stack: ["Tech1", "Tech2"],
-  //   project_url: "https://...",
-  //   github_url: "https://github.com/...",
-  //   image_url: "/proyecto-3.png",
-  // },
+  {
+    id: 4,
+    title: {
+      es: "Sistema de Información para taller de Motos",
+      en: "Motorcycle Workshop Information System",
+    },
+    short_description: {
+      es: "Sistema de información para el control de inventario, servicios de mantenimiento y gestión de clientes de taller mecánico de motos.",
+      en: "Information system for managing inventory, maintenance services, and customer records in a motorcycle repair workshop.",
+    },
+    tech_stack: ["Next.js", "TypeScript", "Tailwind CSS"],
+    project_url: "https://proyecto-taller-moto.vercel.app/",
+    github_url: "https://github.com/Livio763/Proyecto_taller_moto.git",
+    image_url: null,
+  },
+  {
+    id: 5,
+    title: {
+      es: "Sistema de Inscripción Web para postulantes del CUP de la FICCT",
+      en: "Web Enrollment System for FICCT CUP Candidates",
+    },
+    short_description: {
+      es: "Plataforma web para la inscripción, gestión de postulantes y seguimiento del proceso de admisión CUP en la FICCT.",
+      en: "Web platform for candidate registration, applicant management, and tracking of the FICCT CUP university entry program.",
+    },
+    tech_stack: ["Next.js", "TypeScript", "Tailwind CSS"],
+    project_url: "https://ficct-admision-app.onrender.com/",
+    github_url: "https://github.com/DrAlastor/ficct-admision.git",
+    image_url: null,
+  },
+  {
+    id: 6,
+    title: {
+      es: "Web para el producto YAKU",
+      en: "Website for YAKU Product",
+    },
+    short_description: {
+      es: "Sitio web promocional e interactivo para la presentación y comercialización del producto YAKU.",
+      en: "Promotional and interactive website for showcasing and marketing the YAKU product.",
+    },
+    tech_stack: ["Next.js", "TypeScript", "CSS"],
+    project_url: "https://yaku-probiotico.vercel.app/",
+    github_url: "https://github.com/DrAlastor/project-nutrition.git",
+    image_url: null,
+  },
 ];
 
 /* ─── Formación y Logros ─── */

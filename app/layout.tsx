@@ -15,9 +15,9 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Alessandro Yevara — Full-stack Developer",
+  title: "Alessandro Yevara Ponce — Full-stack Developer",
   description:
-    "Portafolio profesional de Alessandro Yevara. Desarrollador Full-stack especializado en tecnologías modernas y diseño de sistemas escalables.",
+    "Portafolio profesional de Alessandro Yevara Ponce. Desarrollador Full-stack especializado en tecnologías modernas y diseño de sistemas escalables.",
 };
 
 export default function RootLayout({

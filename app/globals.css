@@ -408,15 +408,29 @@ h6 {
   transform: translateY(-4px);
 }
 
+.project-card-image-wrapper {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-secondary);
+}
+
 .project-card-image {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  object-position: top;
+  transition: transform var(--transition-normal);
   background: linear-gradient(
     135deg,
     rgba(100, 50, 200, 0.3),
     rgba(50, 100, 200, 0.3)
   );
+}
+
+.project-card:hover .project-card-image {
+  transform: scale(1.04);
 }
 
 .project-card-body {
