@@ -551,8 +551,22 @@ export default function Home() {
                 onClick={() => setActiveTimeline(exp.id)}
               >
                 <div className="timeline-date">
-                  {new Date(exp.start_date).getFullYear()}
-                  {exp.end_date && ` - ${new Date(exp.end_date).getFullYear()}`}
+                  {(() => {
+                    const start = new Date(exp.start_date);
+                    const startStr = start.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
+                      month: "short",
+                      year: "numeric",
+                    });
+                    if (!exp.end_date) {
+                      return `${startStr} - ${lang === "es" ? "Presente" : "Present"}`;
+                    }
+                    const end = new Date(exp.end_date);
+                    const endStr = end.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
+                      month: "short",
+                      year: "numeric",
+                    });
+                    return `${startStr} — ${endStr}`;
+                  })()}
                 </div>
                 <div className="timeline-company">{getText(exp.institution, lang)}</div>
                 <div className="timeline-role">
@@ -572,6 +586,16 @@ export default function Home() {
                     </span>
                   )}
                 </div>
+                {activeTimeline === exp.id && (
+                  <motion.p
+                    className="timeline-description"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {getText(exp.description, lang)}
+                  </motion.p>
+                )}
               </motion.div>
             ))}
           </motion.div>

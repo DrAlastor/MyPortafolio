@@ -150,12 +150,12 @@ export const academicExperiences: AcademicExperience[] = [
       en: "Computer Engineering",
     },
     institution: {
-      es: "Universidad",
-      en: "University",
+      es: "Universidad Autónoma Gabriel René Moreno (UAGRM)",
+      en: "Gabriel René Moreno Autonomous University (UAGRM)",
     },
     description: {
-      es: "Carrera en curso de Ingeniería Informática.",
-      en: "Ongoing Computer Engineering degree.",
+      es: "Carrera en curso de Ingeniería Informática en la Facultad de Ingeniería en Ciencias de la Computación y Telecomunicaciones (FICCT).",
+      en: "Ongoing Computer Engineering degree at the Faculty of Computer Science and Telecommunications Engineering (FICCT).",
     },
     start_date: "2022-01-01",
     end_date: null,
@@ -164,19 +164,73 @@ export const academicExperiences: AcademicExperience[] = [
   {
     id: 2,
     title: {
-      es: "Curso de Desarrollo Web Full-stack",
-      en: "Full-stack Web Development Course",
+      es: "Feria de Ciencias Facultativa — Estudiante Expositor",
+      en: "Faculty Science Fair — Student Exhibitor",
     },
     institution: {
-      es: "Plataforma Online",
-      en: "Online Platform",
+      es: "UAGRM — FICCT — Instituto de Investigación (IICCT)",
+      en: "UAGRM — FICCT — Research Institute (IICCT)",
     },
     description: {
-      es: "Desarrollo web con JavaScript, React y Node.js.",
-      en: "Web development with JavaScript, React, and Node.js.",
+      es: "Expositor de Proyecto de Investigación Académica Formativa. Área: Programación. Categoría: Básico. Proyecto: Juego Super Mario Bros.",
+      en: "Academic Research Project Exhibitor. Area: Programming. Category: Basic. Project: Super Mario Bros Game.",
     },
-    start_date: "2023-06-01",
-    end_date: "2023-12-01",
+    start_date: "2024-07-16",
+    end_date: "2024-07-18",
+    has_certificate: true,
+  },
+  {
+    id: 3,
+    title: {
+      es: "Taller de Ciberseguridad: Prácticas y Herramientas Efectivas",
+      en: "Cybersecurity Workshop: Effective Practices and Tools",
+    },
+    institution: {
+      es: "UAGRM — FICCT",
+      en: "UAGRM — FICCT",
+    },
+    description: {
+      es: "Taller de Ciberseguridad con una duración total de 8 horas académicas. Instructor: Ing. Guido Delgadillo Fernández.",
+      en: "Cybersecurity workshop with a total duration of 8 academic hours. Instructor: Eng. Guido Delgadillo Fernández.",
+    },
+    start_date: "2024-07-13",
+    end_date: "2024-07-20",
+    has_certificate: true,
+  },
+  {
+    id: 4,
+    title: {
+      es: "Feria Facultativa — Estudiante Expositor",
+      en: "Faculty Fair — Student Exhibitor",
+    },
+    institution: {
+      es: "UAGRM — FICCT — Instituto de Investigación (IICCT)",
+      en: "UAGRM — FICCT — Research Institute (IICCT)",
+    },
+    description: {
+      es: "Expositor de Proyecto de Investigación Académica Formativa. Área: Matemáticas y Física. Categoría: Intermedio. Proyecto: Modelado Matemático para la Seguridad Estructural Frente a los Sismos Utilizando Ecuaciones Diferenciales.",
+      en: "Academic Research Project Exhibitor. Area: Mathematics and Physics. Category: Intermediate. Project: Mathematical Modeling for Earthquake Structural Safety Using Differential Equations.",
+    },
+    start_date: "2024-12-12",
+    end_date: "2024-12-13",
+    has_certificate: true,
+  },
+  {
+    id: 5,
+    title: {
+      es: "Feria de Ciencias Facultativa — Estudiante Expositor",
+      en: "Faculty Science Fair — Student Exhibitor",
+    },
+    institution: {
+      es: "UAGRM — FICCT — Instituto de Investigación (IICCT)",
+      en: "UAGRM — FICCT — Research Institute (IICCT)",
+    },
+    description: {
+      es: "Expositor de Proyecto de Investigación Académica Formativa. Área: Programación. Categoría: Intermedio. Proyecto: Análisis, diseño e implementación de un sistema de gestión integral para la cafetería Grano Urbano.",
+      en: "Academic Research Project Exhibitor. Area: Programming. Category: Intermediate. Project: Analysis, design and implementation of a comprehensive management system for the Grano Urbano coffee shop.",
+    },
+    start_date: "2025-07-09",
+    end_date: "2025-07-11",
     has_certificate: true,
   },
 ];
